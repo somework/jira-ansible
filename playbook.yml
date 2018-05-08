@@ -1,0 +1,9 @@
+- hosts: youtrack
+  vars_files:
+    - 'vars/youtrack.yml'
+  tasks:
+    - import_tasks: 'tasks/youtrack.yml'
+
+  remote_user: root
+#  roles:
+#    - ansiblebit.oracle-java
