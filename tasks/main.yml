@@ -1,0 +1,18 @@
+- name: create YouTrack user
+  user:
+    name: '{{ youtrack_user }}'
+    comment: 'YouTrack service user'
+
+- name: Detect JAVA_HOME
+  shell: 'dirname $(dirname $(readlink -f $(which javac)))'
+  register: java_home
+
+- name: Ansible check Java Service Wrapper exist
+  stat:
+    path: ~{{ youtrack_user }}/standalone
+  register: java_service_directory
+
+- import_tasks: 'jsw.yml'
+  when: not java_service_directory.stat.exists
+
+- import_tasks: 'youtrack.yml'

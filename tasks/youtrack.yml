@@ -1,53 +1,20 @@
-- name: create YouTrack user
-  user:
-    name: '{{ youtrack_user }}'
-    comment: 'YouTrack service user'
-
-- name: Define Java Service Wrapper version
-  set_fact:
-    java_service_wrapper_version: "{{ java_service_wrapper_version | default(
-        lookup('url', 'https://download.tanukisoftware.com/wrapper/stable', split_lines=False) |
-        replace('\n', '')
-      )
-    }}"
-
-- name: Define Java Service Wrapper Url [x86_64]
-  set_fact:
-    java_service_wrapper_archive_name: "{{ java_service_wrapper_archive_name | default('wrapper-linux-x86-64-{{ java_service_wrapper_version }}') }}"
-    java_service_wrapper_url: "{{
-      java_service_wrapper_url | default(
-        'https://wrapper.tanukisoftware.com/download/{{ java_service_wrapper_version }}/{{ java_service_wrapper_archive_name }}.tar.gz'
-      )
-    }}"
-  when: ansible_os_family == "Debian" and ansible_architecture == "x86_64"
-
-- name: Define Java Service Wrapper Url [x86_32]
-  set_fact:
-    java_service_wrapper_archive_name: "{{ java_service_wrapper_archive_name | default('wrapper-linux-x86-32-{{ java_service_wrapper_version }}') }}"
-    java_service_wrapper_url: "{{
-      java_service_wrapper_url | default(
-        'https://wrapper.tanukisoftware.com/download/{{ java_service_wrapper_version }}/{{ java_service_wrapper_archive_name }}.tar.gz'
-      )
-    }}"
-  when: ansible_os_family == "Debian" and ansible_architecture == "x86_32"
-
-- name: Download and unarchive Java Service Wrapper
-  unarchive:
-    src: "{{ java_service_wrapper_url }}"
-    dest: '~{{ youtrack_user }}'
-    remote_src: yes
-
-- name: Symlink Java Service Wrapper directory to standalon
-  file:
-    src: '~{{ youtrack_user }}/{{ java_service_wrapper_archive_name }}'
-    dest: '~{{ youtrack_user }}/standalon'
-    state: link
+- name: Ansible check youtrack jar exist
+  stat:
+    path: ~{{ youtrack_user }}/standalone/youtrack.jar
+  register: youtrack_jar_file
 
 - name: Download YouTrack Jar
   get_url:
     url: '{{ youtrack_jar }}'
-    dest: '~{{ youtrack_user }}/standalon/youtrack.jar'
+    dest: '~{{ youtrack_user }}/standalone/youtrack.jar'
+  when: not youtrack_jar_file.stat.exists
 
+- name: Create youtrack init.d
+  template:
+    src: templates/youtrack_initd.j2
+    dest: /etc/init.d/youtrack
 
-#- name: Dump all vars
-#  action: template src=templates/dumpall.j2 dest=/tmp/ansible.all
+- name: Create youtrack wrapper.conf
+  template:
+    src: templates/wrapper.conf.j2
+    dest: '~{{ youtrack_user }}/standalone/conf/wrapper.conf'
