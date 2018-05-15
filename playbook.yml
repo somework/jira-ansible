@@ -1,9 +1,21 @@
-- hosts: youtrack
-  vars_files:
-    - 'vars/youtrack.yml'
-  tasks:
-    - import_tasks: 'tasks/main.yml'
+#- hosts: youtrack
+#  vars_files:
+#    - 'vars/main.yml'
+#  tasks:
+#    - import_tasks: 'tasks/main.yml'
+#  remote_user: root
+#
+#  roles:
+#    - angstwad.docker_ubuntu
+#
+#  handlers:
+#    - name: restart docker
+#      service:
+#        name: docker
+#        state: restarted
 
+- hosts: jira
   remote_user: root
   roles:
-    - ansiblebit.oracle-java
+    - angstwad.docker_ubuntu
+

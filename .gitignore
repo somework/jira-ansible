@@ -4,3 +4,6 @@
 out
 gen
 *.retry
+
+
+inventory.yml

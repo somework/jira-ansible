@@ -1,0 +1,29 @@
+version: '2'
+
+services:
+
+    # Jira
+    jira:
+        image: blacklabelops/jira:{{ jira_version }}
+        volumes:
+            - ./data/jira:/var/atlassian/jira
+
+
+        labels:
+          com.blacklabelops.description: "Atlassian Jira"
+          com.blacklabelops.service: "jira"
+
+
+        environment:
+          - 'JIRA_DATABASE_URL=postgresql://jira@postgresql/jiradb'
+          - 'JIRA_DB_PASSWORD=jellyfish'
+          - 'CATALINA_OPTS={{ catalina_opts }}'
+          - 'JIRA_PROXY_NAME='
+          - 'JIRA_PROXY_PORT='
+          - 'JIRA_PROXY_SCHEME='
+
+    postgresql:
+        image: blacklabelops/postgres
+        volumes:
+            - .postgresqldata:/var/lib/postgresql/data
+

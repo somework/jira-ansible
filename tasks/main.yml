@@ -1,18 +1,35 @@
-- name: create YouTrack user
+- name: Set timezone to Europe/Moscow
+  timezone:
+    name: '{{ timezone }}'
+
+- name: create JetBrains user
   user:
-    name: '{{ youtrack_user }}'
-    comment: 'YouTrack service user'
+    name: '{{ jetbrains_user_name }}'
+    uid: '{{ jetbrains_user_uid }}'
+    groups: docker
+    shell: /bin/bash
+    comment: 'JetBrains service user'
+  notify: restart docker
 
-- name: Detect JAVA_HOME
-  shell: 'dirname $(dirname $(readlink -f $(which javac)))'
-  register: java_home
+- name: Create directory to Docker
+  file:
+    path: '~{{ jetbrains_user_name }}/docker'
+    owner: '{{ jetbrains_user_name }}'
+    group: '{{ jetbrains_user_name }}'
+    state: directory
+    mode: 0750
 
-- name: Ansible check Java Service Wrapper exist
-  stat:
-    path: ~{{ youtrack_user }}/standalone
-  register: java_service_directory
+- name: Create docker-compose.yml
+  template:
+    src: 'templates/docker-compose.yml.j2'
+    dest: '~{{ jetbrains_user_name }}/docker/docker-compose.yml'
+    owner: '{{ jetbrains_user_name }}'
+    group: '{{ jetbrains_user_name }}'
+    mode: 0750
+  register: result
 
-- import_tasks: 'jsw.yml'
-  when: not java_service_directory.stat.exists
-
-- import_tasks: 'youtrack.yml'
+- name: Recreate YouTrack Docker
+  shell: 'docker-compose rm -s -f && docker-compose up -d'
+  args:
+    chdir: '~{{ jetbrains_user_name }}/docker'
+  when: result.changed

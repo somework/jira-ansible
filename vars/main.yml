@@ -1,0 +1,8 @@
+jira_version: '7.9.2'
+jira_port: 8080
+
+postgres_version: '9.6.9-alpine'
+
+catalina_opts: '-Xms1g -Xmx1g'
+
+
